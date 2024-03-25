@@ -6,6 +6,10 @@ m = 3000  # mass (kg)
 dt = 20 * 60  # dt in seconds
 total_time = 7 * 24 * 60 * 60  # total time of one week in seconds
 num_steps = total_time//dt  # iterations
+R = 1.5  # radius of the chaser
+H = 8  # height of the chaser
+J = [[m * ((R ** 2) / 4 + (H ** 2) / 12), 0, 0], [0, m * ((R ** 2) / 4 + (H ** 2) / 12), 0], [0, 0, m * R ** 2 / 2]]  # inertia matrix
+# we took it as the chaser is a cylinder, homogenous and full of mass
 
 
 # discretized clohessy-wiltshire equations
@@ -22,6 +26,8 @@ def clohessy_wiltshire(r, v, dt, F):
 
     return np.array([new_r, new_v])
 
+
+# discretize the evolution of q, the rotation quaternion
 def next_q(q, dt):
     qx, qy, qz, qw = q
     Omega = np.array([[-qx, -qy, -qz], [qw, -qz, qy], [qz, qw, -qx], [-qy, qx, qw]])
@@ -30,8 +36,9 @@ def next_q(q, dt):
     new_q = q + q_dot*dt
     return new_q
 
+
+# discretize the evolution of w, the angular speed of the chaser
 def next_w(w, L, dt):
-    J = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])# à remplacer par le vrai J
     # finite differences
     w_dot = np.dot(np.linalg.inv(J), L-np.dot(w, np.dot(J, w)))
     new_w = w + w_dot*dt
